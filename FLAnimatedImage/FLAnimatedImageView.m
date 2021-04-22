@@ -27,6 +27,7 @@
 @property (nonatomic, assign, readwrite) NSUInteger currentFrameIndex;
 
 @property (nonatomic, assign) NSUInteger loopCountdown;
+@property (nonatomic, assign) NSUInteger customLoopCount;
 @property (nonatomic, assign) NSTimeInterval accumulator;
 @property (nonatomic, strong) CADisplayLink *displayLink;
 
@@ -87,7 +88,7 @@
 - (void)commonInit
 {
     self.runLoopMode = [[self class] defaultRunLoopMode];
-    
+    _shouldAnimate = YES;
     if (@available(iOS 11.0, *)) {
         self.accessibilityIgnoresInvertColors = YES;
     }
@@ -124,10 +125,14 @@
         
         self.currentFrame = animatedImage.posterImage;
         self.currentFrameIndex = 0;
-        if (animatedImage.loopCount > 0) {
-            self.loopCountdown = animatedImage.loopCount;
-        } else {
-            self.loopCountdown = NSUIntegerMax;
+        if (_customLoopCount > 0) {
+            self.loopCountdown = _customLoopCount;
+        }else {
+            if (animatedImage.loopCount > 0) {
+                self.loopCountdown = animatedImage.loopCount;
+            } else {
+                self.loopCountdown = NSUIntegerMax;
+            }
         }
         self.accumulator = 0.0;
         
@@ -141,6 +146,28 @@
     }
 }
 
+- (void)setAnimatedLoopCount:(NSUInteger)loopCount {
+    _customLoopCount = loopCount;
+    if (_customLoopCount > 0) {
+        self.loopCountdown = _customLoopCount;
+    }else {
+        if (_animatedImage.loopCount > 0) {
+            self.loopCountdown = _animatedImage.loopCount;
+        } else {
+            self.loopCountdown = NSUIntegerMax;
+        }
+    }
+}
+
+- (void)setAutoAnimated:(BOOL)autoAnimated {
+    _autoAnimated = autoAnimated;
+    [self updateShouldAnimate];
+    if (self.shouldAnimate) {
+        [self startAnimating];
+    } else {
+        [self stopAnimating];
+    }
+}
 
 #pragma mark - Life Cycle
 
@@ -368,7 +395,7 @@ static NSUInteger gcd(NSUInteger a, NSUInteger b)
 - (void)updateShouldAnimate
 {
     BOOL isVisible = self.window && self.superview && ![self isHidden] && self.alpha > 0.0;
-    self.shouldAnimate = self.animatedImage && isVisible;
+    self.shouldAnimate = self.animatedImage && isVisible && _shouldAnimate;
 }
 
 
