@@ -138,7 +138,7 @@
         
         // Start animating after the new animated image has been set.
         [self updateShouldAnimate];
-        if (self.shouldAnimate) {
+        if (self.shouldAnimate && self.autoAnimated) {
             [self startAnimating];
         }
         
@@ -395,7 +395,7 @@ static NSUInteger gcd(NSUInteger a, NSUInteger b)
 - (void)updateShouldAnimate
 {
     BOOL isVisible = self.window && self.superview && ![self isHidden] && self.alpha > 0.0;
-    self.shouldAnimate = self.animatedImage && isVisible && _shouldAnimate;
+    self.shouldAnimate = self.animatedImage && isVisible;
 }
 
 
